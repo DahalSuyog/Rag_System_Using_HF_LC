@@ -4,6 +4,7 @@ from langchain_pinecone import PineconeVectorStore
 from pinecone import Pinecone, ServerlessSpec
 from langchain_core.documents import Document
 from typing import List
+from dotenv import load_dotenv
 
 
 
@@ -22,10 +23,10 @@ class VectorStoreManager:
         '''
         self.index_name = index_name
         self.dimension = dimension
-        
+        self.embedding_model = embedding_model
         #This initializes the embedding model
         #It automatically uses the OPENAI_API_KEY from the environment variables
-        self.embedding = OpenAIEmbeddings(model=self.embedding_model)
+        self.embeddings = OpenAIEmbeddings(model=self.embedding_model)
 
         # 2. Initialize the core Pinecone client
         # (This automatically looks for your PINECONE_API_KEY environment variable)
@@ -95,14 +96,13 @@ class VectorStoreManager:
 # ==========================================
 if __name__ == "__main__":
     # Ensure keys are loaded in your local environment for testing
-    os.environ["OPENAI_API_KEY"] = "your-openai-key-here"
-    os.environ["PINECONE_API_KEY"] = "your-pinecone-key-here"
+    load_dotenv()  # This will load the .env file and set environment variables
     
     # Target index
     MY_INDEX = "pdf-chatbot-prototype"
     
     # 1. Initialize manager
-    db_manager = VectorStoreManager(index_name=MY_INDEX)
+    db_manager = VectorStoreManager(index_name=os.getenv("VECTOR_STORE_INDEX_NAME"))
     
     # 2. Mock documents mimicking the output from your PdfParser split_text_into_chunks()
     mock_chunks = [
