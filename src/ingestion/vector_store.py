@@ -5,6 +5,7 @@ from pinecone import Pinecone, ServerlessSpec
 from langchain_core.documents import Document
 from typing import List
 from dotenv import load_dotenv
+from langchain_huggingface import HuggingFaceEmbeddings
 
 
 
@@ -13,12 +14,12 @@ class VectorStoreManager:
     '''
     Manages the embedding and vector storeing langchain documents in Pinecone Database.
     '''
-    def __init__(self, index_name: str, embedding_model: str = "text-embedding-3-small", dimension: int = 1536):
+    def __init__(self, index_name: str, embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2", dimension: int = 384):
         '''
         Initializes Pinecone clients and sets up embedding models.
         
         :param index_name: Name of the Pinecone index to target or create.
-        :param dimension: 1536 for OpenAI's 'text-embedding-3-small' model.
+        :param dimension: 384 for OpenAI's 'sentence-transformers/all-MiniLM-L6-v2' model.
         
         '''
         self.index_name = index_name
@@ -26,7 +27,7 @@ class VectorStoreManager:
         self.embedding_model = embedding_model
         #This initializes the embedding model
         #It automatically uses the OPENAI_API_KEY from the environment variables
-        self.embeddings = OpenAIEmbeddings(model=self.embedding_model)
+        self.embeddings = HuggingFaceEmbeddings(model_name=self.embedding_model)
 
         # 2. Initialize the core Pinecone client
         # (This automatically looks for your PINECONE_API_KEY environment variable)
@@ -47,7 +48,10 @@ class VectorStoreManager:
         """
         Internal helper method to check if the index exists. 
         If not, it automatically creates a cloud serverless instance.
+
         """
+        if self.pc.has_index(self.index_name):
+            self.pc.delete_index(self.index_name)
         if not self.pc.has_index(self.index_name):
             print(f"Index '{self.index_name}' not found. Creating a serverless index...")
             
@@ -122,3 +126,4 @@ if __name__ == "__main__":
     for doc in results:
         print(f"Found Content: {doc.page_content}")
         print(f"Source Metadata: {doc.metadata}")  # This will print: {'page_number': 1}
+        
