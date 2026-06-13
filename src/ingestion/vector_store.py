@@ -50,8 +50,6 @@ class VectorStoreManager:
         If not, it automatically creates a cloud serverless instance.
 
         """
-        if self.pc.has_index(self.index_name):
-            self.pc.delete_index(self.index_name)
         if not self.pc.has_index(self.index_name):
             print(f"Index '{self.index_name}' not found. Creating a serverless index...")
             
