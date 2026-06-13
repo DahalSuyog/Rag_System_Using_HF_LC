@@ -1,7 +1,6 @@
 
 from __future__ import annotations
  
-import logging
 import os
 from typing import Any
 from dotenv import load_dotenv
@@ -40,7 +39,7 @@ class Model:
     model_id : str
         HF model repo id. Must be a chat/instruct model.
     temperature : float
-        0.0–0.2 recommended for reliable tool-call JSON generation.
+        0.0 to 0.2 recommended for reliable tool-call JSON generation.
     max_new_tokens : int
         Per-step generation budget.
     """
@@ -86,8 +85,7 @@ class Model:
             tools=TOOLS,
             prompt=system_prompt,
         )
- 
-        logger.info("Model ready | model_id=%s", model_id)
+
 
     def run(self, user_message: str, history: list[BaseMessage] | None = None,
     ) -> str:
