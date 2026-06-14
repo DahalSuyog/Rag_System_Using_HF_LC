@@ -21,7 +21,7 @@ TOOLS = get_all_tools()
 
 class Model:
     """
-    Wraps a LangGraph ReAct agent backed by Llama 3 8B on HuggingFace.
+    Wraps a Langchain.agents agent backed by Llama 3 8B on HuggingFace.
  
     Usage
     -----

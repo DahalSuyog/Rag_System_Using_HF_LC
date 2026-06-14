@@ -30,6 +30,7 @@ def retrieve_documents(query: str, top_k: int = 3) -> str:
     return f"[Retrieval stub] query='{query}', top_k={top_k}."
 
 
+
 # ==========================================
 # 2. AUTOMATIC REGISTRY BACKEND
 # ==========================================
