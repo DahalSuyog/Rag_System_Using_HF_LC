@@ -83,7 +83,7 @@ class Model:
         self.agent = create_agent(
             model=chat_model,
             tools=TOOLS,
-            prompt=system_prompt,
+            system_prompt=system_prompt,
         )
 
 
