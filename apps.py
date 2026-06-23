@@ -25,7 +25,7 @@ if "messages" not in st.session_state:
 def init_rag_components():
     parser = PdfParser()
     vector_store = VectorStoreManager()
-    model = Model()
+    model = Model(vector_store=vector_store)
     return parser, vector_store, model
 
 parser, vector_store, model = init_rag_components()

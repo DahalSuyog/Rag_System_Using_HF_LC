@@ -7,7 +7,7 @@ from typing import List
 from dotenv import load_dotenv
 from langchain_huggingface import HuggingFaceEmbeddings
 
-
+from src.ingestion.parser import PdfParser
 
 
 class VectorStoreManager:
@@ -97,31 +97,50 @@ class VectorStoreManager:
 # Example Usage / Local Integration Test
 # ==========================================
 if __name__ == "__main__":
-    # Ensure keys are loaded in your local environment for testing
-    load_dotenv()  # This will load the .env file and set environment variables
+    # Load environment variables (API keys, Pinecone keys, etc.)
+    load_dotenv()  
     
-    # Target index
-    MY_INDEX = "pdf-chatbot-prototype"
+    # Target index (Fallback to "pdf-chatbot-prototype" if env var is missing)
+    MY_INDEX = os.getenv("VECTOR_STORE_INDEX_NAME", "pdf-chatbot-prototype")
     
-    # 1. Initialize manager
-    db_manager = VectorStoreManager(index_name=os.getenv("VECTOR_STORE_INDEX_NAME"))
+    # 1. Initialize manager and parser
+    db_manager = VectorStoreManager(index_name=MY_INDEX)
+    parser = PdfParser(chunk_size=500, chunk_overlap=100)
     
-    # 2. Mock documents mimicking the output from your PdfParser split_text_into_chunks()
-    mock_chunks = [
-        Document(page_content="The revenue of the company in Q3 was $5 million.", metadata={"page_number": 1}),
-        Document(page_content="Our core policy states that employees can work remotely.", metadata={"page_number": 2}),
-        Document(page_content="The primary contact for emergency operations is John Doe.", metadata={"page_number": 5})
-    ]
+    # Path to your real PDF
+    sample_pdf = "/home/suyogdahal/Desktop/project/Rag_System_Using_HF_LC/temp_uploads/saap_company_budget_rag_test.pdf"
     
-    # 3. Store documents in the cloud
-    db_manager.store_documents(mock_chunks)
-    
-    # 4. Test Query Retrieval
-    test_query = "What was the company's revenue?"
-    print(f"\n--- Testing Similarity Search for: '{test_query}' ---")
-    results = db_manager.similarity_search(test_query, k=1)
-    
-    for doc in results:
-        print(f"Found Content: {doc.page_content}")
-        print(f"Source Metadata: {doc.metadata}")  # This will print: {'page_number': 1}
+    try:
+        # 2. Extract and chunk real PDF data
+        print(f"--- Phase 1: Extracting text from {sample_pdf} ---")
+        raw_pages = parser.extract_text_by_page(sample_pdf)
+        print(f"Successfully processed {len(raw_pages)} pages.\n")
         
+        print("--- Phase 2: Splitting text into chunks ---")
+        processed_chunks = parser.split_text_into_chunks(raw_pages)
+        print(f"Generated {len(processed_chunks)} total chunks.\n")
+        
+        # 3. Store the REAL documents in the cloud vector store
+        print("--- Phase 3: Storing documents in Vector DB ---")
+        db_manager.store_documents(processed_chunks)
+        print(f"Successfully stored {len(processed_chunks)} chunks in {MY_INDEX}.\n")
+        
+        # 4. Test Query Retrieval
+        # Tip: Adjust this query based on what you know is actually inside your PDF!
+        test_query = "What was the company's revenue?"
+        print(f"--- Phase 4: Testing Similarity Search for: '{test_query}' ---")
+        
+        # Fetch the top 1 most similar chunk
+        results = db_manager.similarity_search(test_query, k=1)
+        
+        # 5. Inspect the results
+        if results:
+            for doc in results:
+                print("\n✅ --- Search Result Found ---")
+                print(f"Found Content: {doc.page_content}")
+                print(f"Source Metadata: {doc.metadata}") 
+        else:
+            print("❌ No results returned from the vector store.")
+            
+    except Exception as e:
+        print(f"An error occurred during the pipeline: {e}")

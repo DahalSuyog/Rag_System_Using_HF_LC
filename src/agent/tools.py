@@ -1,11 +1,13 @@
 # tools.py
 import logging
+from typing import List
 from langchain_core.tools import tool, BaseTool
+from langchain_core.documents import Document
 
 logger = logging.getLogger(__name__)
 
 # ==========================================
-# 1. DEFINE YOUR TOOLS HERE
+# 1. STATIC TOOLS (No dependencies needed)
 # ==========================================
 
 @tool
@@ -20,25 +22,43 @@ def greet_user(name: str = "") -> str:
     return "Hello! How can I help you today?"
 
 
-@tool
-def retrieve_documents(query: str, top_k: int = 3) -> str:
-    """
-    Call this tool when the user asks a question that requires fetching
-    information, facts, or knowledge from the document store / knowledge base.
-    """
-    logger.info("retrieve_documents | query=%r top_k=%d", query, top_k)
-    return f"[Retrieval stub] query='{query}', top_k={top_k}."
-
-
-
 # ==========================================
-# 2. AUTOMATIC REGISTRY BACKEND
+# 2. DYNAMIC TOOL FACTORY (Injects Vector Store)
 # ==========================================
 
-def get_all_tools() -> list[BaseTool]:
+def get_all_tools(vector_store=None) -> list[BaseTool]:
     """
-    Automatically grabs every LangChain tool defined in this module global scope.
-    Developers only need to add @tool to their function; it will appear here instantly.
+    Returns a list of tools. 
+    Accepts a vector_store instance to inject into the retrieval tool.
     """
-    # globals().values() lets us look at everything defined in this file
-    return [obj for obj in globals().values() if isinstance(obj, BaseTool) and obj.func.__module__ == __name__]
+    
+    # We define the tool INSIDE this function so it has access to `vector_store`
+    @tool
+    def retrieve_documents(query: str) -> str:
+        """
+        Use this tool to search the knowledge base and retrieve relevant documents.
+        Pass the user's question as the 'query' argument.
+        """
+        if vector_store is None:
+            return "Error: Vector store is not connected."
+        
+        try:
+            # Perform similarity search
+            docs = vector_store.similarity_search(query, k=3)
+        except Exception as e:
+            logger.error(f"Error during similarity search: {e}")
+            return f"Error retrieving documents: {e}"
+        
+        # Format the output so the LLM can read it easily
+        if not docs:
+            return "No relevant documents found."
+        
+        formatted_docs = []
+        for i, doc in enumerate(docs):
+            page_num = doc.metadata.get("page_number", "N/A")
+            formatted_docs.append(f"Document {i+1} (Page {page_num}):\n{doc.page_content}")
+            
+        return "\n\n".join(formatted_docs)
+
+    # Return the static tools + the dynamically generated retrieval tool
+    return [greet_user, retrieve_documents]

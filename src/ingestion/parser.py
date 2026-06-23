@@ -77,7 +77,7 @@ if __name__ == "__main__":
     parser = PdfParser(chunk_size=500, chunk_overlap=100)
     
     # Replace this with a path to a real PDF for testing
-    sample_pdf = "sample_document.pdf" 
+    sample_pdf = "/home/suyogdahal/Desktop/project/Rag_System_Using_HF_LC/temp_uploads/saap_company_budget_rag_test.pdf" 
     
     try:
         print(f"--- Phase 1: Extracting text from {sample_pdf} ---")
@@ -91,8 +91,8 @@ if __name__ == "__main__":
         # Print a sample chunk to inspect structure
         if processed_chunks:
             print("--- Sample Chunk Output ---")
-            print(f"Metadata: {processed_chunks[0]['metadata']}")
-            print(f"Content:\n{processed_chunks[0]['text'][:200]}...")
+            print(f"Metadata: {processed_chunks[0].metadata}")
+            print(f"Content:\n{processed_chunks[0].page_content[:200]}...")
             
     except FileNotFoundError as e:
         print(f"Error: {e}. Please provide a valid PDF file path to run the test script.")
