@@ -48,6 +48,7 @@ class Model:
         model_id: str = "meta-llama/Meta-Llama-3-8B-Instruct",
         temperature: float = 0.1,
         max_new_tokens: int = 512,
+        tools = None
     ):
         token = hf_token or os.environ.get("HF_TOKEN")
         if not token:
@@ -55,6 +56,9 @@ class Model:
                 "Provide hf_token= or set the HF_TOKEN environment variable. "
                 "Get a token at https://huggingface.co/settings/tokens"
             )
+ 
+        if tools is None:
+            tools = get_all_tools()
  
         # HuggingFaceEndpoint: calls the HF Serverless Inference API.
         # For a private/dedicated endpoint swap `repo_id` for `endpoint_url`.

@@ -3,9 +3,10 @@ import os
 from pathlib import Path
 
 # Import your custom modules based on your folder structure
-from src.ingestion.parser import PdfParser
-from src.ingestion.vector_store import VectorStoreManager
-from src.inference.core import Model
+from src.ingestion import PdfParser
+from src.ingestion import VectorStoreManager
+from src.agent import Model
+
 
 # Optional: If your Model class doesn't automatically load tools internally, 
 # you can import them here.
@@ -64,8 +65,8 @@ with st.sidebar:
                     
                     documents = [
                         Document(
-                            page_content=chunk["text"], 
-                            metadata={"page": chunk.get("page_number", 0), "source": uploaded_file.name}
+                            page_content=chunk.page_content, 
+                            metadata={"page": chunk.metadata.get("page_number", 0), "source": uploaded_file.name}
                         ) 
                         for chunk in chunks
                     ]

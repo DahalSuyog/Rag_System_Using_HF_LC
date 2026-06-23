@@ -14,7 +14,7 @@ class VectorStoreManager:
     '''
     Manages the embedding and vector storeing langchain documents in Pinecone Database.
     '''
-    def __init__(self, index_name: str, embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2", dimension: int = 384):
+    def __init__(self, index_name: str | None = None, embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2", dimension: int = 384):
         '''
         Initializes Pinecone clients and sets up embedding models.
         
@@ -22,7 +22,7 @@ class VectorStoreManager:
         :param dimension: 384 for OpenAI's 'sentence-transformers/all-MiniLM-L6-v2' model.
         
         '''
-        self.index_name = index_name
+        self.index_name = index_name or os.getenv("VECTOR_STORE_INDEX_NAME", "pdf-chatbot-prototype")
         self.dimension = dimension
         self.embedding_model = embedding_model
         #This initializes the embedding model

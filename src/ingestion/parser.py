@@ -45,12 +45,12 @@ class PdfParser:
                 
         return extracted_pages
 
-    def split_text_into_chunks(self, pages_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def split_text_into_chunks(self, pages_data: List[Dict[str, Any]]) -> List[Document]:
         """
         Splits extracted page text into smaller, overlapping chunks suitable for LLM context windows.
         
         :param pages_data: Output from extract_text_by_page.
-        :return: A list of dictionaries containing chunk text and metadata.
+        :return: A list of LangChain Document objects containing chunk text and metadata.
         """
         langchain_docs = []
 
@@ -64,8 +64,8 @@ class PdfParser:
             )
             langchain_docs.append(doc)
 
-            #using the splitter to create chunks from the page text
-            final_chunks = self.splitter.split_documents(langchain_docs)
+        #using the splitter to create chunks from the page text
+        final_chunks = self.splitter.split_documents(langchain_docs)
         return final_chunks
 
 
